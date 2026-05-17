@@ -55,8 +55,8 @@ export function StatsBar({
       </div>
 
       <div className="flex items-center gap-3 pr-1">
-        <div className="px-3 py-1 rounded-full bg-primary/10 dark:bg-primary/20">
-          <span className="text-xs font-bold text-primary-dark dark:text-primary">
+        <div className="px-3 py-1 rounded-full" style={{ backgroundColor: '#5BA0A81A' }}>
+          <span className="text-xs font-bold" style={{ color: '#5BA0A8' }}>
             올해 +{yearlyAdded}권
           </span>
         </div>

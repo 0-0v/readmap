@@ -1,5 +1,6 @@
 import React from 'react'
 import { Globe } from 'lucide-react'
+import { Link } from 'react-router-dom'
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg'
   showTagline?: boolean
@@ -24,14 +25,14 @@ export function Logo({ size = 'md', showTagline = false }: LogoProps) {
   }
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="flex items-center gap-2">
-        <Globe className={`${sizes[size].icon} text-primary`} />
+      <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Globe className={sizes[size].icon} style={{ color: '#5BA0A8' }} />
         <h1
           className={`${sizes[size].text} font-bold text-gray-900 dark:text-white`}
         >
           ReadMap
         </h1>
-      </div>
+      </Link>
       {showTagline && (
         <p
           className={`${sizes[size].tagline} text-gray-600 dark:text-gray-400`}
