@@ -2,17 +2,30 @@ import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
 import { useState } from 'react'
 import { KakaoBook } from '@/services/kakaoBooks'
+import { Country } from '@/utils/countries'
+import { CountrySelect } from './CountrySelect'
+
+export interface SaveMeta {
+  rating: number
+  startDate: string
+  endDate: string
+  note: string
+  country: string
+  countryCode: string
+}
 
 interface BookDetailPanelProps {
   book: KakaoBook | null
-  onSave: (book: KakaoBook, meta: { rating: number; startDate: string; endDate: string; note: string }) => void
+  onSave: (book: KakaoBook, meta: SaveMeta) => void
+  saving?: boolean
 }
 
-export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
+export function BookDetailPanel({ book, onSave, saving = false }: BookDetailPanelProps) {
   const [note, setNote] = useState('')
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
   const [rating, setRating] = useState(4)
+  const [country, setCountry] = useState<Country | null>(null)
 
   if (!book) {
     return (
@@ -24,6 +37,18 @@ export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
 
   const year = book.datetime ? book.datetime.substring(0, 4) : ''
   const author = book.authors.join(', ')
+
+  const handleSave = () => {
+    if (!country) { alert('배경 나라를 선택해주세요'); return }
+    onSave(book, {
+      rating,
+      startDate,
+      endDate,
+      note,
+      country: country.nameKo,
+      countryCode: country.code,
+    })
+  }
 
   return (
     <motion.div
@@ -37,19 +62,15 @@ export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
           {book.thumbnail ? (
             <img src={book.thumbnail} alt={book.title} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-              표지 없음
-            </div>
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">표지 없음</div>
           )}
         </div>
         <div className="flex-1 pt-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
-            {book.title}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">{book.title}</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-6 font-medium">
             {author}{year && ` · ${year}`}
           </p>
-          <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+          <div className="grid grid-cols-2 gap-y-4 text-sm">
             <div>
               <span className="block text-gray-400 text-xs mb-1">출판사</span>
               <span className="font-bold text-gray-900 dark:text-white">{book.publisher || '-'}</span>
@@ -64,15 +85,21 @@ export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
         </div>
       </div>
 
+      {/* 배경 나라 */}
+      <div>
+        <h3 className="text-xs font-bold text-gray-400 mb-3 flex items-center gap-1">
+          <span className="text-primary">📍</span> 배경 나라
+        </h3>
+        <CountrySelect value={country} onChange={setCountry} />
+      </div>
+
       {/* 줄거리 */}
       {book.contents && (
         <div>
           <h3 className="text-xs font-bold text-gray-400 mb-3 flex items-center gap-1">
             <span className="text-gray-400">📖</span> 줄거리
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4">
-            {book.contents}
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4">{book.contents}</p>
         </div>
       )}
 
@@ -89,7 +116,7 @@ export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 border-none text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary outline-none"
+                className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary outline-none"
               />
             </div>
             <div>
@@ -98,28 +125,20 @@ export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 border-none text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary outline-none"
+                className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary outline-none"
               />
             </div>
           </div>
-
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">평점</label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button key={star} onClick={() => setRating(star)} className="p-1 focus:outline-none">
-                  <Star
-                    className={`w-6 h-6 ${
-                      star <= rating
-                        ? 'fill-primary text-primary'
-                        : 'fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700'
-                    }`}
-                  />
+                  <Star className={`w-6 h-6 ${star <= rating ? 'fill-primary text-primary' : 'fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700'}`} />
                 </button>
               ))}
             </div>
           </div>
-
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">짧은 감상</label>
             <textarea
@@ -127,7 +146,7 @@ export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
               onChange={(e) => setNote(e.target.value)}
               placeholder="이 책을 읽고 난 느낌을 적어보세요."
               rows={3}
-              className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-none text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary outline-none resize-none"
+              className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary outline-none resize-none"
             />
           </div>
         </div>
@@ -136,10 +155,11 @@ export function BookDetailPanel({ book, onSave }: BookDetailPanelProps) {
       <motion.button
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        onClick={() => onSave(book, { rating, startDate, endDate, note })}
-        className="w-full py-4 rounded-xl bg-gray-900 dark:bg-gray-800 hover:bg-black dark:hover:bg-gray-700 text-white font-bold transition-colors shadow-md"
+        onClick={handleSave}
+        disabled={saving}
+        className="w-full py-4 rounded-xl bg-gray-900 dark:bg-gray-800 hover:bg-black dark:hover:bg-gray-700 text-white font-bold transition-colors shadow-md disabled:opacity-50"
       >
-        내 지도에 저장
+        {saving ? '저장 중...' : '내 지도에 저장'}
       </motion.button>
     </motion.div>
   )

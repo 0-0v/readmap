@@ -1,40 +1,60 @@
-'use client'
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TopNav } from '../layouts/TopNav'
 import { StatsBar } from '../components/book/StatsBar'
 import { WorldMap } from '../components/map/WorldMap'
 import { CountrySidePanel } from '../components/map/CountrySidePanel'
-import { mockBooks, countryStats } from '../constants/books'
-import { Book } from '../constants/books'
+import { ColorSettings } from '../components/map/ColorSettings'
+import { getUserBooks } from '@/services/books'
+import { useMapColors } from '@/hooks/useMapColors'
+import { UserBook } from '@/types/book'
+
 export default function MainMap() {
-  const [selectedCountry, setSelectedCountry] = useState<string>('')
-  const [selectedBooks, setSelectedBooks] = useState<Book[]>([])
+  const [books, setBooks] = useState<UserBook[]>([])
+  const [selectedCountry, setSelectedCountry] = useState('')
+  const [selectedBooks, setSelectedBooks] = useState<UserBook[]>([])
   const [isPanelOpen, setIsPanelOpen] = useState(false)
-  const handleCountryClick = (countryCode: string, books: Book[]) => {
-    setSelectedCountry(books[0]?.country || '')
-    setSelectedBooks(books)
+  const { colors, update, reset } = useMapColors()
+
+  useEffect(() => {
+    getUserBooks()
+      .then(setBooks)
+      .catch(() => {})
+  }, [])
+
+  const handleCountryClick = (_code: string, booksInCountry: UserBook[]) => {
+    setSelectedCountry(booksInCountry[0]?.country ?? '')
+    setSelectedBooks(booksInCountry)
     setIsPanelOpen(true)
   }
+
+  const countryCount = new Set(books.map((b) => b.country_code)).size
+  const yearlyAdded = books.filter(
+    (b) => b.created_at?.startsWith(new Date().getFullYear().toString())
+  ).length
+
   return (
     <div className="w-full h-screen bg-cream dark:bg-navy-deep flex flex-col overflow-hidden">
       <TopNav />
 
       <div className="flex-1 relative">
-        {/* Floating Stats Bar */}
         <div className="absolute top-6 left-0 right-0 z-10 pointer-events-none">
           <div className="pointer-events-auto">
             <StatsBar
-              countries={countryStats.totalCountries}
-              continents={countryStats.totalContinents}
-              books={countryStats.totalBooks}
-              yearlyAdded={countryStats.yearlyAdded}
+              countries={countryCount}
+              continents={0}
+              books={books.length}
+              yearlyAdded={yearlyAdded}
             />
           </div>
         </div>
 
-        {/* Full bleed map */}
+        {/* 색상 설정 버튼 — 줌 컨트롤 왼쪽 */}
+        <div className="absolute bottom-8 right-24 z-20">
+          <ColorSettings colors={colors} onUpdate={update} onReset={reset} />
+        </div>
+
         <div className="w-full h-full">
-          <WorldMap books={mockBooks} onCountryClick={handleCountryClick} />
+          <WorldMap books={books} onCountryClick={handleCountryClick} colors={colors} />
         </div>
 
         <CountrySidePanel

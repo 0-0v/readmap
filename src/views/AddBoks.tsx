@@ -1,10 +1,11 @@
 import { Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookDetailPanel } from '../components/book/BookDetailPanel'
+import { BookDetailPanel, SaveMeta } from '../components/book/BookDetailPanel'
 import { BookSearchCard } from '../components/book/BookSearchCard'
 import { TopNav } from '../layouts/TopNav'
 import { KakaoBook, searchKakaoBooks } from '@/services/kakaoBooks'
+import { saveBook } from '@/services/books'
 
 export default function AddBook() {
   const navigate = useNavigate()
@@ -12,6 +13,7 @@ export default function AddBook() {
   const [results, setResults] = useState<KakaoBook[]>([])
   const [selectedBook, setSelectedBook] = useState<KakaoBook | null>(null)
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -24,11 +26,17 @@ export default function AddBook() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  const handleSave = (book: KakaoBook, meta: { rating: number; startDate: string; endDate: string; note: string }) => {
-    // TODO: Supabase에 저장
-    console.log('저장:', book, meta)
-    alert(`"${book.title}" 저장 완료!`)
-    navigate('/')
+  const handleSave = async (book: KakaoBook, meta: SaveMeta) => {
+    setSaving(true)
+    try {
+      const { error } = await saveBook(book, meta)
+      if (error) throw error
+      navigate('/')
+    } catch (e) {
+      alert('저장 실패: ' + (e as Error).message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -36,7 +44,6 @@ export default function AddBook() {
       <TopNav />
 
       <div className="flex-1 max-w-7xl mx-auto w-full p-8">
-        {/* Header */}
         <div className="flex items-end justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">새 책 등록하기</h1>
@@ -44,7 +51,6 @@ export default function AddBook() {
           </div>
         </div>
 
-        {/* Search */}
         <div className="mb-8">
           <div className="relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -67,7 +73,6 @@ export default function AddBook() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* 검색 결과 */}
           <div className="lg:col-span-7">
             {searchQuery && (
               <div className="flex items-center justify-between mb-4 px-1">
@@ -77,7 +82,6 @@ export default function AddBook() {
                 </span>
               </div>
             )}
-
             <div className="space-y-4 max-h-[calc(100vh-380px)] overflow-y-auto pr-2 pb-8">
               {!searchQuery ? (
                 <div className="text-center py-20 text-gray-400 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
@@ -104,10 +108,13 @@ export default function AddBook() {
             </div>
           </div>
 
-          {/* 상세 패널 */}
           <div className="lg:col-span-5">
             <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 sticky top-24 h-fit max-h-[calc(100vh-120px)] overflow-y-auto">
-              <BookDetailPanel book={selectedBook} onSave={handleSave} />
+              <BookDetailPanel
+                book={selectedBook}
+                onSave={handleSave}
+                saving={saving}
+              />
             </div>
           </div>
         </div>
