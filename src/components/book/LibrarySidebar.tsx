@@ -73,8 +73,8 @@ export function LibrarySidebar({ books }: LibrarySidebarProps) {
               </div>
               <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-800">
                 <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${(count / maxCount) * 100}%` }}
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${(count / maxCount) * 100}%`, backgroundColor: '#5BA0A8' }}
                 />
               </div>
             </div>

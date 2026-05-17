@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Grid, List, Search } from 'lucide-react'
 import { TopNav } from '../layouts/TopNav'
 import { BookCard } from '@/components/book/BookCard'
+import { BookDetailSidePanel } from '@/components/book/BookDetailSidePanel'
 import { LibrarySidebar } from '@/components/book/LibrarySidebar'
 import { getUserBooks } from '@/services/books'
 import { UserBook } from '@/types/book'
@@ -23,6 +24,7 @@ export default function Library() {
   const [sort, setSort] = useState<SortKey>('recent')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortOpen, setSortOpen] = useState(false)
+  const [selectedBook, setSelectedBook] = useState<UserBook | null>(null)
   const sortRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -194,7 +196,7 @@ export default function Library() {
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
                 {filtered.map((book) => (
-                  <BookCard key={book.id} book={book} />
+                  <BookCard key={book.id} book={book} onClick={() => setSelectedBook(book)} />
                 ))}
               </div>
             ) : (
@@ -202,7 +204,8 @@ export default function Library() {
                 {filtered.map((book) => (
                   <div
                     key={book.id}
-                    className="flex gap-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 hover:shadow-md transition-shadow"
+                    onClick={() => setSelectedBook(book)}
+                    className="flex gap-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="w-12 h-18 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                       {book.thumbnail ? (
@@ -242,6 +245,19 @@ export default function Library() {
           </div>
         </div>
       </div>
+
+      <BookDetailSidePanel
+        book={selectedBook}
+        onClose={() => setSelectedBook(null)}
+        onUpdate={(updated) => {
+          setBooks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)))
+          setSelectedBook(updated)
+        }}
+        onDelete={(id) => {
+          setBooks((prev) => prev.filter((b) => b.id !== id))
+          setSelectedBook(null)
+        }}
+      />
     </div>
   )
 }

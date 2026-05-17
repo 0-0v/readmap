@@ -31,6 +31,19 @@ export const saveBook = async (kakaoBook: KakaoBook, meta: SaveBookMeta) => {
   })
 }
 
+export const updateBook = async (
+  id: string,
+  patch: { rating?: number; country?: string; country_code?: string; start_date?: string | null; end_date?: string | null; note?: string }
+) => {
+  const { error } = await supabase.from('books').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+export const deleteBook = async (id: string) => {
+  const { error } = await supabase.from('books').delete().eq('id', id)
+  if (error) throw error
+}
+
 export const getUserBooks = async (): Promise<UserBook[]> => {
   const { data, error } = await supabase
     .from('books')

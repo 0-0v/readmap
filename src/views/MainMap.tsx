@@ -28,6 +28,20 @@ export default function MainMap() {
     setIsPanelOpen(true)
   }
 
+  const handleBookUpdate = (updated: UserBook) => {
+    setBooks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)))
+    setSelectedBooks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)))
+  }
+
+  const handleBookDelete = (id: string) => {
+    setBooks((prev) => prev.filter((b) => b.id !== id))
+    setSelectedBooks((prev) => {
+      const next = prev.filter((b) => b.id !== id)
+      if (next.length === 0) setIsPanelOpen(false)
+      return next
+    })
+  }
+
   const countryCount = new Set(books.map((b) => b.country_code)).size
   const continentCount = new Set(
     books.map((b) => findCountry(b.country)?.continent).filter(Boolean)
@@ -66,6 +80,8 @@ export default function MainMap() {
           onClose={() => setIsPanelOpen(false)}
           books={selectedBooks}
           country={selectedCountry}
+          onBookUpdate={handleBookUpdate}
+          onBookDelete={handleBookDelete}
         />
       </div>
     </div>

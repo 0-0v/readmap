@@ -27,11 +27,16 @@ export function TopNav() {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!user) { setAvatarIndex(null); return }
+    if (!user) return
+    let active = true
     getProfile().then((profile) => {
-      setAvatarIndex(profile?.avatar_index ?? (user.id.charCodeAt(0) % profileImages.length))
+      if (active) {
+        setAvatarIndex(profile?.avatar_index ?? (user.id.charCodeAt(0) % profileImages.length))
+      }
     })
-  }, [user])
+    return () => { active = false }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])  // user 객체 전체 대신 id만 의존해 불필요한 재실행 방지
 
   const profileImage = avatarIndex !== null ? profileImages[avatarIndex] : null
 
@@ -98,18 +103,21 @@ export function TopNav() {
               onClick={() => setOpen((v) => !v)}
               className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700"
             >
-              <img src={profileImage!} alt="프로필" className="w-full h-full object-cover" />
+              {profileImage && (
+                <img src={profileImage} alt="프로필" className="w-full h-full object-cover" />
+              )}
             </button>
 
             {open && (
               <div className="absolute right-0 top-11 w-64 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl z-50 overflow-hidden">
-                {/* 프로필 헤더 */}
                 <div className="flex items-center gap-4 px-5 py-5">
-                  <img
-                    src={profileImage!}
-                    alt="프로필"
-                    className="w-14 h-14 rounded-2xl object-cover"
-                  />
+                  {profileImage && (
+                    <img
+                      src={profileImage}
+                      alt="프로필"
+                      className="w-14 h-14 rounded-2xl object-cover"
+                    />
+                  )}
                   <span className="text-lg font-bold text-gray-900 dark:text-white">
                     {nickname}
                   </span>
@@ -117,14 +125,9 @@ export function TopNav() {
 
                 <div className="border-t border-gray-100 dark:border-gray-800" />
 
-                {/* 메뉴 항목 */}
                 <div className="py-1">
                   <button className="w-full flex items-center justify-between px-5 py-3.5 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <span>내 정보</span>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="w-full flex items-center justify-between px-5 py-3.5 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <span>내 커뮤니티 프로필</span>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
                   <button
@@ -137,10 +140,7 @@ export function TopNav() {
               </div>
             )}
           </div>
-
-
-
-) : (
+        ) : (
           <Link
             to="/login"
             className="px-4 py-1.5 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-bold text-sm hover:bg-black dark:hover:bg-white transition-colors"
