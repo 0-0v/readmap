@@ -77,3 +77,33 @@ export const numericToAlpha3 = Object.fromEntries(
 
 export const findCountry = (nameKo: string) =>
   COUNTRIES.find((c) => c.nameKo === nameKo)
+
+// ISBN 접두사(978-XX)로 원산지 국가 추론
+// 카카오 API의 isbn 필드는 "ISBN10 ISBN13" 형식일 수 있음
+const ISBN_PREFIX_MAP: [string, string][] = [
+  ['978-89', '한국'], ['978-8', '한국'],
+  ['978-0', '미국'],  ['978-1', '미국'],
+  ['978-2', '프랑스'],
+  ['978-3', '독일'],
+  ['978-4', '일본'],
+  ['978-5', '러시아'],
+  ['978-7', '중국'],
+  ['978-84', '스페인'],
+  ['978-85', '브라질'],
+  ['978-88', '이탈리아'],
+  ['978-91', '스웨덴'],
+  ['978-94', '네덜란드'],
+  ['978-83', '폴란드'],
+  ['978-82', '노르웨이'],
+  ['978-87', '덴마크'],
+]
+
+export function inferCountryFromIsbn(isbn: string): Country | null {
+  const isbn13 = isbn.split(' ').find((s) => s.startsWith('978') || s.startsWith('979'))
+  if (!isbn13) return null
+  const normalized = `978-${isbn13.slice(3)}`
+  for (const [prefix, nameKo] of ISBN_PREFIX_MAP) {
+    if (normalized.startsWith(prefix)) return findCountry(nameKo) ?? null
+  }
+  return null
+}

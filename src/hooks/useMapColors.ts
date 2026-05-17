@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getProfile, updateProfile } from '@/services/profile'
 
 export interface MapColors {
   pin: string
@@ -6,28 +7,26 @@ export interface MapColors {
 }
 
 const DEFAULT: MapColors = { pin: '#5BA0A8', fill: '#5BA0A8' }
-const STORAGE_KEY = 'readmap_map_colors'
-
-function load(): MapColors {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return { ...DEFAULT, ...JSON.parse(raw) }
-  } catch {}
-  return DEFAULT
-}
 
 export function useMapColors() {
-  const [colors, setColors] = useState<MapColors>(load)
+  const [colors, setColors] = useState<MapColors>(DEFAULT)
+
+  useEffect(() => {
+    getProfile().then((profile) => {
+      if (!profile) return
+      setColors({ pin: profile.map_pin_color, fill: profile.map_fill_color })
+    })
+  }, [])
 
   const update = (next: Partial<MapColors>) => {
     const merged = { ...colors, ...next }
     setColors(merged)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged))
+    updateProfile({ map_pin_color: merged.pin, map_fill_color: merged.fill })
   }
 
   const reset = () => {
     setColors(DEFAULT)
-    localStorage.removeItem(STORAGE_KEY)
+    updateProfile({ map_pin_color: DEFAULT.pin, map_fill_color: DEFAULT.fill })
   }
 
   return { colors, update, reset }

@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { KakaoBook } from '@/services/kakaoBooks'
-import { Country } from '@/utils/countries'
+import { Country, inferCountryFromIsbn } from '@/utils/countries'
 import { CountrySelect } from './CountrySelect'
 
 export interface SaveMeta {
@@ -26,6 +26,11 @@ export function BookDetailPanel({ book, onSave, saving = false }: BookDetailPane
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
   const [rating, setRating] = useState(4)
   const [country, setCountry] = useState<Country | null>(null)
+
+  useEffect(() => {
+    if (!book) { setCountry(null); return }
+    setCountry(inferCountryFromIsbn(book.isbn))
+  }, [book?.isbn])
 
   if (!book) {
     return (
@@ -89,6 +94,11 @@ export function BookDetailPanel({ book, onSave, saving = false }: BookDetailPane
       <div>
         <h3 className="text-xs font-bold text-gray-400 mb-3 flex items-center gap-1">
           <span className="text-primary">📍</span> 배경 나라
+          {country && (
+            <span className="ml-1 text-[10px] font-normal text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded-full">
+              자동 인식
+            </span>
+          )}
         </h3>
         <CountrySelect value={country} onChange={setCountry} />
       </div>

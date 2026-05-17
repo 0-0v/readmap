@@ -1,8 +1,9 @@
 import { signOut } from '@/services/auth'
+import { getProfile } from '@/services/profile'
 import { useAuth } from '@/stores/authStore'
 import { Bell, ChevronRight, Search } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Logo } from '../components/ui/Logo'
 
 import Betty from '@/assets/images/Betty.png'
@@ -22,13 +23,17 @@ export function TopNav() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [avatarIndex, setAvatarIndex] = useState<number | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const profileImage = useMemo(() => {
-    if (!user) return null
-    const index = user.id.charCodeAt(0) % profileImages.length
-    return profileImages[index]
+  useEffect(() => {
+    if (!user) { setAvatarIndex(null); return }
+    getProfile().then((profile) => {
+      setAvatarIndex(profile?.avatar_index ?? (user.id.charCodeAt(0) % profileImages.length))
+    })
   }, [user])
+
+  const profileImage = avatarIndex !== null ? profileImages[avatarIndex] : null
 
   const nickname =
     user?.user_metadata?.name ||
@@ -57,18 +62,25 @@ export function TopNav() {
         </div>
 
         <nav className="hidden md:flex items-center gap-2">
-          <button className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-bold text-sm transition-colors">
-            지도
-          </button>
-          <button className="px-4 py-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 font-medium text-sm transition-colors">
-            서재
-          </button>
-          <button className="px-4 py-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 font-medium text-sm transition-colors">
-            통계
-          </button>
-          <button className="px-4 py-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 font-medium text-sm transition-colors">
-            친구
-          </button>
+          {[
+            { to: '/', label: '지도', end: true },
+            { to: '/library', label: '서재', end: false },
+          ].map(({ to, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `px-4 py-2 rounded-full text-sm transition-colors ${
+                  isActive
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-bold'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 font-medium'
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
         </nav>
       </div>
 
