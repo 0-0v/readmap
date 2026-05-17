@@ -1,6 +1,7 @@
 import { signOut } from '@/services/auth'
 import { getProfile } from '@/services/profile'
 import { useAuth } from '@/stores/authStore'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Bell, ChevronRight, Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
@@ -24,6 +25,7 @@ export function TopNav() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [avatarIndex, setAvatarIndex] = useState<number | null>(null)
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export function TopNav() {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false)
+        setConfirmLogout(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -57,6 +60,45 @@ export function TopNav() {
   }, [])
 
   return (
+    <>
+    <AnimatePresence>
+      {confirmLogout && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setConfirmLogout(false)}
+            className="fixed inset-0 bg-black/30 dark:bg-black/50 z-[100]"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="fixed left-1/2 -translate-x-1/2 top-[38%] z-[101] w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 p-6"
+          >
+            <p className="text-base font-bold text-gray-900 dark:text-white text-center mb-1">로그아웃</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">정말 로그아웃하시겠어요?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => { await signOut(); setConfirmLogout(false); navigate('/') }}
+                className="flex-1 py-3 rounded-xl text-white text-sm font-bold transition-colors"
+                style={{ backgroundColor: '#5BA0A8' }}
+              >
+                네
+              </button>
+              <button
+                onClick={() => setConfirmLogout(false)}
+                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                취소
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
     <div className="w-full h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 flex items-center justify-between sticky top-0 z-40">
       <div className="flex items-center gap-12">
         <div className="flex items-center gap-3">
@@ -131,7 +173,7 @@ export function TopNav() {
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
                   <button
-                    onClick={async () => { await signOut(); setOpen(false); navigate('/') }}
+                    onClick={() => { setConfirmLogout(true); setOpen(false) }}
                     className="w-full flex items-center px-5 py-3.5 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     로그아웃
@@ -150,5 +192,6 @@ export function TopNav() {
         )}
       </div>
     </div>
+    </>
   )
 }
