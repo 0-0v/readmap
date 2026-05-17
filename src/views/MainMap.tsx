@@ -6,6 +6,7 @@ import { CountrySidePanel } from '../components/map/CountrySidePanel'
 import { ColorSettings } from '../components/map/ColorSettings'
 import { getUserBooks } from '@/services/books'
 import { useMapColors } from '@/hooks/useMapColors'
+import { findCountry } from '@/utils/countries'
 import { UserBook } from '@/types/book'
 
 export default function MainMap() {
@@ -28,6 +29,9 @@ export default function MainMap() {
   }
 
   const countryCount = new Set(books.map((b) => b.country_code)).size
+  const continentCount = new Set(
+    books.map((b) => findCountry(b.country)?.continent).filter(Boolean)
+  ).size
   const yearlyAdded = books.filter(
     (b) => b.created_at?.startsWith(new Date().getFullYear().toString())
   ).length
@@ -41,7 +45,7 @@ export default function MainMap() {
           <div className="pointer-events-auto">
             <StatsBar
               countries={countryCount}
-              continents={0}
+              continents={continentCount}
               books={books.length}
               yearlyAdded={yearlyAdded}
             />

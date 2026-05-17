@@ -19,12 +19,13 @@ export function ColorSettings({ colors, onUpdate, onReset }: ColorSettingsProps)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (!open) return
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
+    document.addEventListener('click', handler, true)
+    return () => document.removeEventListener('click', handler, true)
+  }, [open])
 
   return (
     <div className="relative" ref={ref}>
