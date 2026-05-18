@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ReadMap
 
-## Getting Started
+읽은 책의 원산지 국가를 세계지도에 기록하는 독서 트래킹 서비스입니다.
 
-First, run the development server:
+**배포 URL**: https://readmap-three.vercel.app
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 주요 기능
+
+- 세계지도에서 국가별로 읽은 책 시각화
+- 카카오 도서 검색으로 책 등록
+- 이메일 / 카카오 소셜 로그인
+- 내 서재 관리 (등록, 수정, 삭제)
+- 라이트 / 다크 테마
+
+---
+
+## 기술 스택
+
+| 분류 | 기술 |
+|------|------|
+| Frontend | React 19, TypeScript, Vite |
+| 스타일 | Tailwind CSS v4, shadcn/ui, Framer Motion |
+| 라우팅 | React Router v7 |
+| 백엔드 | Supabase (Auth, Database) |
+| 외부 API | 카카오 도서 검색 API |
+| 배포 | Vercel |
+
+---
+
+## 로컬 실행
+
+### 사전 준비
+
+- Node.js 18+
+- pnpm
+
+### 환경변수 설정
+
+프로젝트 루트에 `.env.local` 파일 생성:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_KAKAO_REST_API_KEY=your_kakao_rest_api_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 실행
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 배포
 
-To learn more about Next.js, take a look at the following resources:
+Vercel CLI로 배포:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+vercel --prod
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Vercel 대시보드 **Settings → Environment Variables**에 위 환경변수 3개를 동일하게 추가해야 합니다.
 
-## Deploy on Vercel
+### 카카오 로그인 설정
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+[카카오 개발자 콘솔](https://developers.kakao.com)에서 Redirect URI 등록:
+- `https://your-domain.vercel.app/`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Supabase 콘솔](https://supabase.com)에서 URL 설정:
+- Site URL: `https://your-domain.vercel.app`
+- Redirect URLs: `https://your-domain.vercel.app/**`
+
+---
+
+## 프로젝트 구조
+
+```
+src/
+├── components/
+│   ├── book/       # 책 관련 컴포넌트
+│   ├── map/        # 세계지도 관련 컴포넌트
+│   └── ui/         # 공통 UI 컴포넌트
+├── layouts/        # 레이아웃
+├── services/       # API 호출 (Supabase, 카카오)
+├── stores/         # 전역 상태 (Auth, Toast)
+├── types/          # TypeScript 타입 정의
+├── views/          # 페이지 컴포넌트
+└── hooks/          # 커스텀 훅
+```
+
+---
+
+## 라우팅
+
+| 경로 | 페이지 | 접근 |
+|------|--------|------|
+| `/` | 세계지도 메인 | 공개 |
+| `/login` | 로그인 | 비로그인 전용 |
+| `/signup` | 회원가입 | 비로그인 전용 |
+| `/add` | 책 등록 | 로그인 필요 |
+| `/library` | 내 서재 | 로그인 필요 |
